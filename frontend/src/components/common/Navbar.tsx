@@ -28,7 +28,8 @@ export const Navbar: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
           >
             <img
-              src="/logo.png"
+              src="https://i.ibb.co/KpScmfcY/logo-baan-nampetch.jpg"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/logo-baan-nampetch.jpg'; }}
               alt="BAAN NAMPETCH PROPERTY"
               className="w-11 h-11 object-contain rounded-xl shadow-soft group-hover:scale-105 transition-transform bg-white border border-pink-100 p-0.5"
             />

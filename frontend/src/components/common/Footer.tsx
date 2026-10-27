@@ -8,7 +8,8 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="https://i.ibb.co/KpScmfcY/logo-baan-nampetch.jpg"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/logo-baan-nampetch.jpg'; }}
               alt="BAAN NAMPETCH PROPERTY"
               className="w-7 h-7 object-contain rounded-lg bg-white border border-pink-100 p-0.5"
             />

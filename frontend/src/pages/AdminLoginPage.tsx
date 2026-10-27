@@ -51,7 +51,8 @@ export const AdminLoginPage: React.FC = () => {
 
         <div className="text-center space-y-2">
           <img
-            src="/logo.png"
+            src="https://i.ibb.co/KpScmfcY/logo-baan-nampetch.jpg"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/logo-baan-nampetch.jpg'; }}
             alt="BAAN NAMPETCH PROPERTY"
             className="w-16 h-16 object-contain rounded-2xl mx-auto shadow-soft bg-white border border-pink-100 p-1"
           />
