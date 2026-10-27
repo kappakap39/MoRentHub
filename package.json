@@ -1,0 +1,31 @@
+{
+  "name": "rent-cars-houses-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack Rent Cars and Houses Web Platform",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "seed": "cd backend && npm run db:seed",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
+  },
+  "keywords": [
+    "rent",
+    "cars",
+    "houses",
+    "react",
+    "typescript",
+    "express",
+    "prisma"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "@neon/config": "^1.9.4",
+    "@neon/env": "^1.6.5"
+  }
+}
