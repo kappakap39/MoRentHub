@@ -37,5 +37,5 @@ RUN mkdir -p /app/uploads /app/data
 
 EXPOSE 5000
 
-# Script to auto-migrate/push db and start server
-CMD ["sh", "-c", "npx prisma db push && npx tsx prisma/seed.ts && node dist/index.js"]
+# Start server
+CMD ["node", "dist/index.js"]
