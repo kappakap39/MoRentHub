@@ -10,11 +10,11 @@ export const Footer: React.FC = () => {
             <div className="w-6 h-6 rounded-lg bg-pink-100 text-pink-500 flex items-center justify-center">
               <Sparkles size={14} />
             </div>
-            <span className="font-semibold text-sm text-slate-700">MoRentHub</span>
+            <span className="font-semibold text-sm text-slate-700">BAAN NAMPETCH PROPERTY</span>
             <span className="text-xs text-slate-400 hidden sm:inline">• แพลตฟอร์มปล่อยเช่ารถและบ้าน</span>
           </div>
           <div className="text-xs text-slate-400">
-            © {new Date().getFullYear()} MoRentHub. All rights reserved.
+            © {new Date().getFullYear()} BAAN NAMPETCH PROPERTY. All rights reserved.
           </div>
         </div>
       </div>

@@ -31,8 +31,8 @@ export const Navbar: React.FC = () => {
               <Sparkles size={20} className="text-white" />
             </div>
             <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-sky-600 bg-clip-text text-transparent">
-                MoRentHub
+              <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-pink-500 to-sky-600 bg-clip-text text-transparent">
+                BAAN NAMPETCH PROPERTY
               </span>
               <span className="block text-[10px] text-slate-400 tracking-wider -mt-1 font-medium">
                 ปล่อยเช่ารถและบ้าน

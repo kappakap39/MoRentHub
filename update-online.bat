@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ===================================================
-echo     MoRentHub - Auto Deploy Update to Online
+echo   BAAN NAMPETCH PROPERTY - Auto Deploy to Online
 echo ===================================================
 echo.
 set /p msg="กรุณาพิมพ์ข้อความว่าอัปเดตอะไร (เช่น แก้ไขหน้าแรก, เพิ่มฟีเจอร์): "
