@@ -50,9 +50,11 @@ export const AdminLoginPage: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-pink-400 via-purple-300 to-sky-400" />
 
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-100 to-sky-100 text-pink-600 flex items-center justify-center mx-auto shadow-sm">
-            <Shield size={28} />
-          </div>
+          <img
+            src="/logo.png"
+            alt="BAAN NAMPETCH PROPERTY"
+            className="w-16 h-16 object-contain rounded-2xl mx-auto shadow-soft bg-white border border-pink-100 p-1"
+          />
           <h2 className="text-xl font-bold text-slate-800">เข้าสู่ระบบผู้ดูแลระบบ (Admin)</h2>
           <p className="text-xs text-slate-500">
             ระบบจัดการข้อมูลการเช่าบ้านและรถยนต์

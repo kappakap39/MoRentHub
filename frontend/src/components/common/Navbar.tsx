@@ -24,12 +24,14 @@ export const Navbar: React.FC = () => {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 group"
+            className="flex items-center gap-3 group"
             onClick={() => setMobileMenuOpen(false)}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-400 via-pink-300 to-sky-300 flex items-center justify-center text-white shadow-soft group-hover:scale-105 transition-transform">
-              <Sparkles size={20} className="text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="BAAN NAMPETCH PROPERTY"
+              className="w-11 h-11 object-contain rounded-xl shadow-soft group-hover:scale-105 transition-transform bg-white border border-pink-100 p-0.5"
+            />
             <div>
               <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-pink-500 to-sky-600 bg-clip-text text-transparent">
                 BAAN NAMPETCH PROPERTY
