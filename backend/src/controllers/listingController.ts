@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import prisma from '../services/prisma';
 
 // 1. ดึงรายการทั้งหมด (Public - สำหรับหน้าแรก มีฟิลเตอร์หมวดหมู่และค้นหา)
@@ -260,12 +261,67 @@ export const uploadListingImages = async (req: Request, res: Response): Promise<
       return;
     }
 
+    const imgbbApiKey = process.env.IMGBB_API_KEY;
+
+    // ถ้ามีการตั้งค่า IMGBB_API_KEY ให้อัปโหลดเข้า ImgBB Cloud ถาวรอัตโนมัติ
+    if (imgbbApiKey) {
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        try {
+          const fileBuffer = fs.readFileSync(file.path);
+          const base64Image = fileBuffer.toString('base64');
+
+          const formData = new URLSearchParams();
+          formData.append('key', imgbbApiKey);
+          formData.append('image', base64Image);
+
+          const response = await fetch('https://api.imgbb.com/1/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString(),
+          });
+
+          const data = (await response.json()) as any;
+          if (data.success && data.data?.url) {
+            uploadedUrls.push(data.data.url);
+          } else {
+            console.error('ImgBB API returned failure:', data);
+            const host = req.get('host');
+            const isHttps = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
+            const protocol = isHttps ? 'https' : 'http';
+            uploadedUrls.push(`${protocol}://${host}/uploads/${file.filename}`);
+          }
+        } catch (uploadErr) {
+          console.error('ImgBB upload error:', uploadErr);
+          const host = req.get('host');
+          const isHttps = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
+          const protocol = isHttps ? 'https' : 'http';
+          uploadedUrls.push(`${protocol}://${host}/uploads/${file.filename}`);
+        } finally {
+          // ลบไฟล์ชั่วคราวออกจากเครื่องเซิร์ฟเวอร์
+          if (fs.existsSync(file.path)) {
+            try {
+              fs.unlinkSync(file.path);
+            } catch (_) {}
+          }
+        }
+      }
+
+      res.json({
+        message: 'อัปโหลดขึ้นคลาวด์ ImgBB สำเร็จ (ภาพคงอยู่ถาวร)',
+        urls: uploadedUrls,
+      });
+      return;
+    }
+
+    // กรณีไม่มี IMGBB_API_KEY ให้ใช้ local storage
     const host = req.get('host');
-    const protocol = req.protocol;
+    const isHttps = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
+    const protocol = isHttps ? 'https' : 'http';
     const urls = files.map((file) => `${protocol}://${host}/uploads/${file.filename}`);
 
     res.json({
-      message: 'อัปโหลดสำเร็จ',
+      message: 'อัปโหลดสำเร็จ (แนะนำตั้งค่า IMGBB_API_KEY บน Render เพื่อเก็บภาพถาวร)',
       urls,
     });
   } catch (error) {

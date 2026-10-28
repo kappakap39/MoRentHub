@@ -448,6 +448,10 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
             </div>
           </div>
 
+          <p className="text-[11px] text-slate-400">
+            💡 แนะนำ: รองรับการเลือกรูปจากเครื่อง (จัดเก็บคลาวด์ถาวรอัตโนมัติ) หรือคัดลอกลิงก์ตรงจาก ImgBB มาวางได้
+          </p>
+
           {/* Image Previews */}
           {images.length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2">
