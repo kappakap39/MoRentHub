@@ -189,10 +189,10 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
             href={googleMapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-pink-500 to-sky-500 hover:from-pink-600 hover:to-sky-600 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md transition-all"
+            className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-pink-500 to-sky-500 hover:from-pink-600 hover:to-sky-600 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md transition-all whitespace-nowrap"
           >
             <ExternalLink size={16} />
-            <span>เปิดนำทางใน Google Maps</span>
+            <span>เปิดนำทาง Google Maps</span>
           </a>
         </div>
       )}

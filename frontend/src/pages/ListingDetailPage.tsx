@@ -336,10 +336,10 @@ export const ListingDetailPage: React.FC = () => {
                 href={googleMapsDirectionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-pink-500 to-sky-500 hover:from-pink-600 hover:to-sky-600 text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-md hover:shadow-lg transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-pink-500 to-sky-500 hover:from-pink-600 hover:to-sky-600 text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-md hover:shadow-lg transition-all whitespace-nowrap"
               >
                 <Navigation size={16} />
-                <span>เปิดนำทางใน Google Maps (จากตำแหน่งปัจจุบัน)</span>
+                <span>เปิดนำทาง Google Maps</span>
               </a>
 
               {/* View on Google Maps pin */}
