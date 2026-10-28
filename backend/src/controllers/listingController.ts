@@ -70,6 +70,42 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
   }
 };
 
+// Helper: แปลง URL ของ Google Maps (รวมถึง maps.app.goo.gl) ให้เป็นพิกัดละติจูดและลองจิจูดที่แม่นยำ
+async function resolveGoogleMapsCoords(mapUrlStr: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    let targetUrl = mapUrlStr.trim();
+    if (!targetUrl.startsWith('http')) return null;
+
+    if (targetUrl.includes('goo.gl') || targetUrl.includes('maps.app')) {
+      const resp = await fetch(targetUrl, { redirect: 'follow' });
+      if (resp && resp.url) {
+        targetUrl = resp.url;
+      }
+    }
+
+    // Pattern 1: !3d12.6155991!4d99.9512898
+    const m1 = targetUrl.match(/!3d(-?\d+(?:\.\d+)?)(?:!4d|.*!4d)(-?\d+(?:\.\d+)?)/);
+    if (m1) {
+      return { lat: parseFloat(m1[1]), lng: parseFloat(m1[2]) };
+    }
+
+    // Pattern 2: @12.6155608,99.9449251
+    const m2 = targetUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m2) {
+      return { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]) };
+    }
+
+    // Pattern 3: query=12.6155608,99.9449251 or q=12.6155608,99.9449251
+    const m3 = targetUrl.match(/[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m3) {
+      return { lat: parseFloat(m3[1]), lng: parseFloat(m3[2]) };
+    }
+  } catch (err) {
+    console.warn('Error resolving Google Maps coordinates:', err);
+  }
+  return null;
+}
+
 // 3. สร้างรายการใหม่ (Admin Only)
 export const createListing = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -99,6 +135,18 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    let finalLat = latitude ? parseFloat(latitude) : 13.7563;
+    let finalLng = longitude ? parseFloat(longitude) : 100.5018;
+
+    // ถ้ามีการส่ง mapUrl มา ให้ดึงพิกัดที่แท้จริงจาก Google Maps อัตโนมัติ
+    if (mapUrl) {
+      const resolved = await resolveGoogleMapsCoords(String(mapUrl));
+      if (resolved) {
+        finalLat = resolved.lat;
+        finalLng = resolved.lng;
+      }
+    }
+
     const listing = await prisma.listing.create({
       data: {
         category: category.toUpperCase(),
@@ -112,8 +160,8 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
         locationName,
         address: address || '',
         mapUrl: mapUrl ? String(mapUrl).trim() : null,
-        latitude: latitude ? parseFloat(latitude) : 13.7563,
-        longitude: longitude ? parseFloat(longitude) : 100.5018,
+        latitude: finalLat,
+        longitude: finalLng,
         contactName: contactName || 'Admin Rental',
         contactPhone,
         contactLine: contactLine || null,
@@ -174,6 +222,18 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
       });
     }
 
+    let finalLat = latitude !== undefined ? parseFloat(latitude) : undefined;
+    let finalLng = longitude !== undefined ? parseFloat(longitude) : undefined;
+
+    // ถ้ามีการส่ง mapUrl มา ให้ดึงพิกัดที่แท้จริงจาก Google Maps อัตโนมัติ
+    if (mapUrl) {
+      const resolved = await resolveGoogleMapsCoords(String(mapUrl));
+      if (resolved) {
+        finalLat = resolved.lat;
+        finalLng = resolved.lng;
+      }
+    }
+
     const updatedListing = await prisma.listing.update({
       where: { id },
       data: {
@@ -188,8 +248,8 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
         locationName,
         address,
         mapUrl: mapUrl !== undefined ? (mapUrl ? String(mapUrl).trim() : null) : undefined,
-        latitude: latitude !== undefined ? parseFloat(latitude) : undefined,
-        longitude: longitude !== undefined ? parseFloat(longitude) : undefined,
+        latitude: finalLat,
+        longitude: finalLng,
         contactName,
         contactPhone,
         contactLine,

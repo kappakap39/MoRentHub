@@ -100,9 +100,10 @@ export const ListingDetailPage: React.FC = () => {
     }
   };
 
-  const googleMapsDirectionsUrl = listing.mapUrl
-    ? listing.mapUrl
-    : `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`;
+  // Directions (นำทาง): ฟิกเส้นทางจากตำแหน่งปัจจุบันของฉันไปยังจุดหมายปลายทางทันที
+  const googleMapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}&travelmode=driving`;
+  
+  // View Location (ดูสถานที่): เปิดลิงก์หมุดสถานที่ตามที่แชร์ หรือเปิดค้นหาพิกัด
   const googleMapsSearchUrl = listing.mapUrl
     ? listing.mapUrl
     : `https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`;
@@ -338,7 +339,7 @@ export const ListingDetailPage: React.FC = () => {
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-pink-500 to-sky-500 hover:from-pink-600 hover:to-sky-600 text-white text-xs sm:text-sm font-semibold rounded-2xl shadow-md hover:shadow-lg transition-all"
               >
                 <Navigation size={16} />
-                <span>เปิดนำทางใน Google Maps</span>
+                <span>เปิดนำทางใน Google Maps (จากตำแหน่งปัจจุบัน)</span>
               </a>
 
               {/* View on Google Maps pin */}

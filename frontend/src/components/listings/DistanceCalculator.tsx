@@ -96,13 +96,11 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
   // Estimated driving time (rough average 60 km/h)
   const estimatedHours = distance !== null ? distance / 60 : null;
 
-  // Google Maps directions link
+  // Google Maps directions link (always directions mode with travelmode=driving)
   const googleMapsDirectionsUrl =
     userLat !== null && userLng !== null
-      ? `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}`
-      : mapUrl
-      ? mapUrl
-      : `https://www.google.com/maps/search/?api=1&query=${destLat},${destLng}`;
+      ? `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}&travelmode=driving`
+      : `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
 
   const directMapUrl = mapUrl || `https://www.google.com/maps/search/?api=1&query=${destLat},${destLng}`;
 

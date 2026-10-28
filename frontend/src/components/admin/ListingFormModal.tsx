@@ -113,6 +113,32 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
     setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
+  // Handle map URL change & auto-extract coordinates if full Google Maps link is pasted
+  const handleMapUrlChange = (value: string) => {
+    setMapUrl(value);
+    const trimmed = value.trim();
+    if (!trimmed) return;
+
+    const m1 = trimmed.match(/!3d(-?\d+(?:\.\d+)?)(?:!4d|.*!4d)(-?\d+(?:\.\d+)?)/);
+    if (m1) {
+      setLatitude(parseFloat(m1[1]));
+      setLongitude(parseFloat(m1[2]));
+      return;
+    }
+    const m2 = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m2) {
+      setLatitude(parseFloat(m2[1]));
+      setLongitude(parseFloat(m2[2]));
+      return;
+    }
+    const m3 = trimmed.match(/[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m3) {
+      setLatitude(parseFloat(m3[1]));
+      setLongitude(parseFloat(m3[2]));
+      return;
+    }
+  };
+
   // Get current GPS for coordinates
   const handleGetCoordinates = () => {
     if (navigator.geolocation) {
@@ -343,7 +369,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
             <input
               type="url"
               value={mapUrl}
-              onChange={(e) => setMapUrl(e.target.value)}
+              onChange={(e) => handleMapUrlChange(e.target.value)}
               placeholder="วางลิงก์ เช่น https://maps.app.goo.gl/RKMiEwGzBQVz54a89"
               className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-sky-300 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-slate-400"
             />
