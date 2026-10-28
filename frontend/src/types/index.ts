@@ -22,6 +22,7 @@ export interface Listing {
   rentalEndDate: string | null;
   locationName: string;
   address?: string | null;
+  mapUrl?: string | null;
   latitude: number;
   longitude: number;
   contactName: string;
@@ -44,6 +45,7 @@ export interface ListingInputPayload {
   rentalEndDate?: string | null;
   locationName: string;
   address?: string | null;
+  mapUrl?: string | null;
   latitude?: number;
   longitude?: number;
   contactName: string;

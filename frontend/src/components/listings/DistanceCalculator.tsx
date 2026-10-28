@@ -5,6 +5,7 @@ interface DistanceCalculatorProps {
   destLat: number;
   destLng: number;
   destTitle: string;
+  mapUrl?: string | null;
   onLocationChange?: (lat: number | null, lng: number | null) => void;
 }
 
@@ -38,6 +39,7 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
   destLat,
   destLng,
   destTitle,
+  mapUrl,
   onLocationChange,
 }) => {
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -98,7 +100,11 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
   const googleMapsDirectionsUrl =
     userLat !== null && userLng !== null
       ? `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}`
+      : mapUrl
+      ? mapUrl
       : `https://www.google.com/maps/search/?api=1&query=${destLat},${destLng}`;
+
+  const directMapUrl = mapUrl || `https://www.google.com/maps/search/?api=1&query=${destLat},${destLng}`;
 
   return (
     <div className="bg-gradient-to-br from-white to-sky-50/50 rounded-3xl p-6 border border-sky-100 shadow-soft space-y-5">
@@ -195,13 +201,13 @@ export const DistanceCalculator: React.FC<DistanceCalculatorProps> = ({
 
       {distance === null && (
         <a
-          href={`https://www.google.com/maps/search/?api=1&query=${destLat},${destLng}`}
+          href={directMapUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-xl transition-all"
         >
           <MapPin size={16} className="text-pink-500" />
-          <span>ดูพิกัดนี้บน Google Maps</span>
+          <span>ดูสถานที่นี้บน Google Maps</span>
         </a>
       )}
     </div>

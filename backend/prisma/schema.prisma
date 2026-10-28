@@ -29,6 +29,7 @@ model Listing {
   rentalEndDate   DateTime?
   locationName    String         // e.g. "เชียงใหม่ หางดง", "กรุงเทพฯ สุขุมวิท"
   address         String?
+  mapUrl          String?        // Google Maps direct share link (e.g. https://maps.app.goo.gl/...)
   latitude        Float          @default(13.7563) // Default Bangkok coordinates
   longitude       Float          @default(100.5018)
   contactName     String         @default("Admin Rental")

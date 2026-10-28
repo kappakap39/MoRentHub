@@ -27,6 +27,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
   const [rentalEndDate, setRentalEndDate] = useState('');
   const [locationName, setLocationName] = useState('');
   const [address, setAddress] = useState('');
+  const [mapUrl, setMapUrl] = useState('');
   const [latitude, setLatitude] = useState<number>(13.7563);
   const [longitude, setLongitude] = useState<number>(100.5018);
   const [contactName, setContactName] = useState('Admin Rental');
@@ -53,6 +54,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
       setRentalEndDate(listingToEdit.rentalEndDate ? listingToEdit.rentalEndDate.split('T')[0] : '');
       setLocationName(listingToEdit.locationName);
       setAddress(listingToEdit.address || '');
+      setMapUrl(listingToEdit.mapUrl || '');
       setLatitude(listingToEdit.latitude);
       setLongitude(listingToEdit.longitude);
       setContactName(listingToEdit.contactName);
@@ -72,6 +74,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
       setRentalEndDate('');
       setLocationName('');
       setAddress('');
+      setMapUrl('');
       setLatitude(13.7563);
       setLongitude(100.5018);
       setContactName('Admin Rental');
@@ -151,6 +154,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
       rentalEndDate: rentalEndDate || null,
       locationName: locationName.trim(),
       address: address.trim(),
+      mapUrl: mapUrl.trim() || null,
       latitude,
       longitude,
       contactName: contactName.trim(),
@@ -331,26 +335,48 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">ละติจูด (Latitude)</label>
-              <input
-                type="number"
-                step="any"
-                value={latitude}
-                onChange={(e) => setLatitude(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">ลองจิจูด (Longitude)</label>
-              <input
-                type="number"
-                step="any"
-                value={longitude}
-                onChange={(e) => setLongitude(parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none"
-              />
+          {/* Google Maps Direct Share Link */}
+          <div className="p-3.5 bg-sky-50/70 rounded-2xl border border-sky-100 space-y-1.5">
+            <label className="block text-xs font-semibold text-sky-900">
+              📍 ลิงก์แชร์ Google Maps (แนะนำ แม่นยำที่สุด)
+            </label>
+            <input
+              type="url"
+              value={mapUrl}
+              onChange={(e) => setMapUrl(e.target.value)}
+              placeholder="วางลิงก์ เช่น https://maps.app.goo.gl/RKMiEwGzBQVz54a89"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-sky-300 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-slate-400"
+            />
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              💡 วิธีแชร์: เปิด Google Maps บนมือถือหรือคอม กดที่จุดสถานที่แล้วกด <strong>"แชร์ (Share)"</strong> แล้วคัดลอกลิงก์มาวางได้เลยครับ เมื่อลูกค้ากดดูระบบจะพาไปเปิดตรงจุดเป๊ะทันที
+            </p>
+          </div>
+
+          <div className="pt-1">
+            <span className="text-[11px] font-medium text-slate-400 block mb-1">
+              พิกัด GPS สำรอง (ละติจูด, ลองจิจูด)
+            </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] text-slate-500 mb-1">ละติจูด (Latitude)</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={latitude}
+                  onChange={(e) => setLatitude(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-500 mb-1">ลองจิจูด (Longitude)</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={longitude}
+                  onChange={(e) => setLongitude(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
         </div>

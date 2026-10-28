@@ -100,8 +100,12 @@ export const ListingDetailPage: React.FC = () => {
     }
   };
 
-  const googleMapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`;
-  const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`;
+  const googleMapsDirectionsUrl = listing.mapUrl
+    ? listing.mapUrl
+    : `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`;
+  const googleMapsSearchUrl = listing.mapUrl
+    ? listing.mapUrl
+    : `https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`;
 
   return (
     <div className="space-y-8 pb-16">
@@ -314,8 +318,14 @@ export const ListingDetailPage: React.FC = () => {
               {listing.address && (
                 <p className="text-[11px] text-slate-500 leading-relaxed">{listing.address}</p>
               )}
-              <div className="pt-2 text-[11px] text-slate-400 font-mono">
-                พิกัด: {listing.latitude.toFixed(5)}, {listing.longitude.toFixed(5)}
+              <div className="pt-2 text-[11px] text-slate-400">
+                {listing.mapUrl ? (
+                  <span className="text-sky-600 font-medium flex items-center gap-1">
+                    <MapPin size={13} className="text-sky-500" /> หมุดตรงตามลิงก์ Google Maps
+                  </span>
+                ) : (
+                  <span className="font-mono">พิกัด: {listing.latitude.toFixed(5)}, {listing.longitude.toFixed(5)}</span>
+                )}
               </div>
             </div>
 
