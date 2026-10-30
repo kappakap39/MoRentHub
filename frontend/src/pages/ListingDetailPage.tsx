@@ -23,8 +23,13 @@ export const ListingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [listing, setListing] = useState<Listing | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleImageError = (failedUrl: string) => {
+    setFailedImages((prev) => (prev.includes(failedUrl) ? prev : [...prev, failedUrl]));
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -74,9 +79,14 @@ export const ListingDetailPage: React.FC = () => {
   const unitLabel =
     listing.priceUnit === 'day' ? 'วัน' : listing.priceUnit === 'month' ? 'เดือน' : 'ปี';
 
-  const images = listing.images.length > 0 ? listing.images.map((img) => img.url) : [
+  const rawImages = listing.images.length > 0 ? listing.images.map((img) => img.url) : [
     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1000&q=80',
   ];
+  const validImages = rawImages.filter((url) => !failedImages.includes(url));
+  const images = validImages.length > 0 ? validImages : [
+    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1000&q=80',
+  ];
+  const safeActiveIndex = activeImageIndex >= images.length ? 0 : activeImageIndex;
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'ไม่ได้ระบุ';
@@ -136,8 +146,9 @@ export const ListingDetailPage: React.FC = () => {
           {/* Main Large Image */}
           <div className="relative aspect-[16/10] rounded-3xl overflow-hidden bg-slate-100 border border-pink-100 shadow-soft">
             <img
-              src={images[activeImageIndex]}
+              src={images[safeActiveIndex]}
               alt={listing.title}
+              onError={() => handleImageError(images[safeActiveIndex])}
               className="w-full h-full object-cover transition-all duration-300"
             />
             <div className="absolute top-4 left-4 flex gap-2">
@@ -156,12 +167,17 @@ export const ListingDetailPage: React.FC = () => {
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
                   className={`relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                    activeImageIndex === idx
+                    safeActiveIndex === idx
                       ? 'border-pink-500 scale-95 shadow-sm'
                       : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={imgUrl} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                  <img
+                    src={imgUrl}
+                    alt={`thumb-${idx}`}
+                    onError={() => handleImageError(imgUrl)}
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>

@@ -27,10 +27,14 @@ const MapUpdater: React.FC<{ destLat: number; destLng: number }> = ({ destLat, d
 };
 
 export const MapView: React.FC<MapViewProps> = ({ destLat, destLng, destTitle }) => {
+  const validLat = typeof destLat === 'number' && !isNaN(destLat) && destLat !== 0 ? destLat : 12.6156;
+  const validLng = typeof destLng === 'number' && !isNaN(destLng) && destLng !== 0 ? destLng : 99.9513;
+
   return (
     <div className="w-full h-80 sm:h-96 rounded-3xl overflow-hidden border border-pink-100 shadow-soft relative z-0">
       <MapContainer
-        center={[destLat, destLng]}
+        key={`${validLat}-${validLng}`}
+        center={[validLat, validLng]}
         zoom={15}
         scrollWheelZoom={false}
         className="w-full h-full"
@@ -41,7 +45,7 @@ export const MapView: React.FC<MapViewProps> = ({ destLat, destLng, destTitle })
         />
 
         {/* Destination Marker */}
-        <Marker position={[destLat, destLng]}>
+        <Marker position={[validLat, validLng]}>
           <Popup>
             <div className="text-xs font-semibold text-slate-800">
               📍 {destTitle}
@@ -49,7 +53,7 @@ export const MapView: React.FC<MapViewProps> = ({ destLat, destLng, destTitle })
           </Popup>
         </Marker>
 
-        <MapUpdater destLat={destLat} destLng={destLng} />
+        <MapUpdater destLat={validLat} destLng={validLng} />
       </MapContainer>
     </div>
   );
