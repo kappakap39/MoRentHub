@@ -24,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.23.1",
+    "s2-geometry": "^1.2.10",
     "ws": "^8.22.0"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Listing, CategoryType, StatusType, PriceUnitType } from '../../types';
 import { api } from '../../services/api';
-import { Upload, X, Plus, MapPin } from 'lucide-react';
+import { Upload, X, Plus, MapPin, Loader2 } from 'lucide-react';
 
 interface ListingFormModalProps {
   isOpen: boolean;
@@ -40,6 +40,8 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResolvingMap, setIsResolvingMap] = useState(false);
+  const [mapResolveStatus, setMapResolveStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -114,29 +116,71 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
   };
 
   // Handle map URL change & auto-extract coordinates if full Google Maps link is pasted
-  const handleMapUrlChange = (value: string) => {
+  const handleMapUrlChange = async (value: string) => {
     setMapUrl(value);
+    setMapResolveStatus(null);
     const trimmed = value.trim();
     if (!trimmed) return;
 
+    // Pattern 1: !3d12.6155991!4d99.9512898
     const m1 = trimmed.match(/!3d(-?\d+(?:\.\d+)?)(?:!4d|.*!4d)(-?\d+(?:\.\d+)?)/);
     if (m1) {
-      setLatitude(parseFloat(m1[1]));
-      setLongitude(parseFloat(m1[2]));
+      const lat = parseFloat(m1[1]);
+      const lng = parseFloat(m1[2]);
+      setLatitude(lat);
+      setLongitude(lng);
+      setMapResolveStatus(`ดึงพิกัดสำเร็จ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       return;
     }
-    const m2 = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+    // Pattern 2: query=... หรือ place/...
+    const m2 = trimmed.match(/(?:[?&](?:q|query)=|place\/)(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
     if (m2) {
-      setLatitude(parseFloat(m2[1]));
-      setLongitude(parseFloat(m2[2]));
+      const lat = parseFloat(m2[1]);
+      const lng = parseFloat(m2[2]);
+      setLatitude(lat);
+      setLongitude(lng);
+      setMapResolveStatus(`ดึงพิกัดสำเร็จ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       return;
     }
-    const m3 = trimmed.match(/[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+    // Pattern 3: @lat,lng
+    const m3 = trimmed.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (m3) {
-      setLatitude(parseFloat(m3[1]));
-      setLongitude(parseFloat(m3[2]));
+      const lat = parseFloat(m3[1]);
+      const lng = parseFloat(m3[2]);
+      setLatitude(lat);
+      setLongitude(lng);
+      setMapResolveStatus(`ดึงพิกัดสำเร็จ: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       return;
     }
+
+    // สำหรับ short link (goo.gl, maps.app) หรือลิงก์หมุดสถานที่ ให้เรียก API ช่วยแกะพิกัด
+    if (trimmed.startsWith('http')) {
+      setIsResolvingMap(true);
+      try {
+        const coords = await api.resolveMapCoords(trimmed);
+        if (coords) {
+          setLatitude(coords.lat);
+          setLongitude(coords.lng);
+          setMapResolveStatus(`ดึงพิกัดจากลิงก์ Google Maps สำเร็จ: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`);
+        }
+      } catch (err) {
+        console.warn('Map resolving error:', err);
+      } finally {
+        setIsResolvingMap(false);
+      }
+    }
+  };
+
+  const handleAddressChange = (value: string) => {
+    // ถ้าผู้ใช้เผลอนำลิงก์แผนที่มาวางในช่องที่อยู่
+    if (value.includes('maps.app.goo.gl') || value.includes('goo.gl/maps') || value.includes('google.com/maps')) {
+      setAddress('');
+      handleMapUrlChange(value.trim());
+      return;
+    }
+    setAddress(value);
   };
 
   // Get current GPS for coordinates
@@ -169,6 +213,16 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
+    let finalMapUrl = mapUrl.trim() || null;
+    let finalAddress = address.trim();
+
+    if (finalAddress && (finalAddress.includes('maps.app.goo.gl') || finalAddress.includes('goo.gl/maps') || finalAddress.includes('google.com/maps'))) {
+      if (!finalMapUrl) {
+        finalMapUrl = finalAddress;
+      }
+      finalAddress = '';
+    }
+
     const payload = {
       category,
       title: title.trim(),
@@ -179,8 +233,8 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
       rentalStartDate: rentalStartDate || null,
       rentalEndDate: rentalEndDate || null,
       locationName: locationName.trim(),
-      address: address.trim(),
-      mapUrl: mapUrl.trim() || null,
+      address: finalAddress,
+      mapUrl: finalMapUrl,
       latitude,
       longitude,
       contactName: contactName.trim(),
@@ -355,7 +409,7 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
             <input
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => handleAddressChange(e.target.value)}
               placeholder="บ้านเลขที่ ซอย ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
               className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-sky-100"
             />
@@ -373,8 +427,18 @@ export const ListingFormModal: React.FC<ListingFormModalProps> = ({
               placeholder="วางลิงก์ เช่น https://maps.app.goo.gl/RKMiEwGzBQVz54a89"
               className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-sky-300 bg-white focus:outline-none focus:ring-2 focus:ring-sky-200 placeholder:text-slate-400"
             />
+            {isResolvingMap && (
+              <p className="text-[11px] text-sky-600 animate-pulse font-medium flex items-center gap-1 mt-1">
+                <Loader2 size={12} className="animate-spin" /> กำลังตรวจสอบและดึงพิกัดจากลิงก์ Google Maps...
+              </p>
+            )}
+            {mapResolveStatus && !isResolvingMap && (
+              <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
+                ✅ {mapResolveStatus}
+              </p>
+            )}
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              💡 วิธีแชร์: เปิด Google Maps บนมือถือหรือคอม กดที่จุดสถานที่แล้วกด <strong>"แชร์ (Share)"</strong> แล้วคัดลอกลิงก์มาวางได้เลยครับ เมื่อลูกค้ากดดูระบบจะพาไปเปิดตรงจุดเป๊ะทันที
+              💡 วิธีแชร์: เปิด Google Maps บนมือถือหรือคอม กดที่จุดสถานที่แล้วกด <strong>"แชร์ (Share)"</strong> แล้วคัดลอกลิงก์มาวางได้เลยครับ ระบบจะดึงพิกัดจริงให้อัตโนมัติทันที
             </p>
           </div>
 

@@ -7,6 +7,7 @@ import {
   updateListingStatus,
   deleteListing,
   uploadListingImages,
+  resolveMapUrl,
 } from '../controllers/listingController';
 import { authenticateToken } from '../middlewares/authMiddleware';
 import { upload } from '../middlewares/uploadMiddleware';
@@ -15,6 +16,7 @@ const router = Router();
 
 // Public routes (หน้าแสดงรายการ & รายละเอียด ไม่ต้องล็อคอิน)
 router.get('/', getAllListings);
+router.post('/resolve-map', resolveMapUrl);
 router.get('/:id', getListingById);
 
 // Protected routes (Admin Only)

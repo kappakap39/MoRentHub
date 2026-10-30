@@ -142,4 +142,22 @@ export const api = {
     if (!res.ok) throw new Error(data.message || 'อัปโหลดรูปภาพล้มเหลว');
     return data.urls;
   },
+
+  async resolveMapCoords(url: string): Promise<{ lat: number; lng: number } | null> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/listings/resolve-map`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.success && data.lat && data.lng) {
+        return { lat: data.lat, lng: data.lng };
+      }
+    } catch (err) {
+      console.warn('Failed to resolve map coords:', err);
+    }
+    return null;
+  },
 };

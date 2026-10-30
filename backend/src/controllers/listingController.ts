@@ -70,14 +70,22 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Helper: แปลง URL ของ Google Maps (รวมถึง maps.app.goo.gl) ให้เป็นพิกัดละติจูดและลองจิจูดที่แม่นยำ
+// @ts-ignore
+const S2 = require('s2-geometry').S2;
+
+// Helper: แปลง URL ของ Google Maps (รวมถึง maps.app.goo.gl และลิงก์สถานที่) ให้เป็นพิกัดละติจูดและลองจิจูดที่แม่นยำ 100%
 async function resolveGoogleMapsCoords(mapUrlStr: string): Promise<{ lat: number; lng: number } | null> {
   try {
     let targetUrl = mapUrlStr.trim();
     if (!targetUrl.startsWith('http')) return null;
 
     if (targetUrl.includes('goo.gl') || targetUrl.includes('maps.app')) {
-      const resp = await fetch(targetUrl, { redirect: 'follow' });
+      const resp = await fetch(targetUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      });
       if (resp && resp.url) {
         targetUrl = resp.url;
       }
@@ -89,22 +97,58 @@ async function resolveGoogleMapsCoords(mapUrlStr: string): Promise<{ lat: number
       return { lat: parseFloat(m1[1]), lng: parseFloat(m1[2]) };
     }
 
-    // Pattern 2: @12.6155608,99.9449251
-    const m2 = targetUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    // Pattern 2: query=12.238526,99.977772 หรือ q=12.238526,99.977772 หรือ place/12.419957,99.930956
+    const m2 = targetUrl.match(/(?:[?&](?:q|query)=|place\/)(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
     if (m2) {
       return { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]) };
     }
 
-    // Pattern 3: query=12.6155608,99.9449251 or q=12.6155608,99.9449251
-    const m3 = targetUrl.match(/[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    // Pattern 3: @12.6155608,99.9449251
+    const m3 = targetUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (m3) {
       return { lat: parseFloat(m3[1]), lng: parseFloat(m3[2]) };
+    }
+
+    // Pattern 4: Google Maps S2 Cell ID จากรหัสฟีเจอร์ !1s0x30fd0184c3b05227:0x...
+    const m4 = targetUrl.match(/!1s0x([0-9a-fA-F]+):0x/);
+    if (m4 && S2) {
+      const hex = m4[1];
+      const dec = BigInt('0x' + hex).toString();
+      const s2coords = S2.idToLatLng(dec);
+      if (s2coords && s2coords.lat && s2coords.lng) {
+        return { lat: s2coords.lat, lng: s2coords.lng };
+      }
+    }
+
+    // Pattern 5: center=12.6155%2C99.9512 หรือ markers=12.6155%2C99.9512
+    const m5 = targetUrl.match(/(?:center|markers|ll)=(-?\d+\.\d+)(?:%2C|,)(-?\d+\.\d+)/);
+    if (m5) {
+      return { lat: parseFloat(m5[1]), lng: parseFloat(m5[2]) };
     }
   } catch (err) {
     console.warn('Error resolving Google Maps coordinates:', err);
   }
   return null;
 }
+
+// Endpoint สำหรับให้หน้าเว็บ (Admin) ดึงพิกัดจากลิงก์ Google Maps ทันที
+export const resolveMapUrl = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== 'string') {
+      res.status(400).json({ message: 'กรุณาระบุ URL ของ Google Maps' });
+      return;
+    }
+    const coords = await resolveGoogleMapsCoords(url);
+    if (coords) {
+      res.json({ success: true, ...coords });
+    } else {
+      res.status(400).json({ success: false, message: 'ไม่สามารถดึงพิกัดจากลิงก์นี้ได้' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการตรวจสอบพิกัด' });
+  }
+};
 
 // 3. สร้างรายการใหม่ (Admin Only)
 export const createListing = async (req: Request, res: Response): Promise<void> => {
@@ -135,12 +179,23 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    let mapUrlToUse = mapUrl ? String(mapUrl).trim() : null;
+    let addressToUse = address ? String(address).trim() : '';
+
+    // ตรวจสอบว่าแอดมินเผลอใส่ Google Maps URL ในช่องที่อยู่หรือไม่ ถ้าใช่ให้นำมาเป็น mapUrl
+    if (addressToUse && (addressToUse.includes('maps.app.goo.gl') || addressToUse.includes('goo.gl/maps') || addressToUse.includes('google.com/maps'))) {
+      if (!mapUrlToUse) {
+        mapUrlToUse = addressToUse;
+      }
+      addressToUse = '';
+    }
+
     let finalLat = latitude ? parseFloat(latitude) : 13.7563;
     let finalLng = longitude ? parseFloat(longitude) : 100.5018;
 
-    // ถ้ามีการส่ง mapUrl มา ให้ดึงพิกัดที่แท้จริงจาก Google Maps อัตโนมัติ
-    if (mapUrl) {
-      const resolved = await resolveGoogleMapsCoords(String(mapUrl));
+    // ถ้ามี mapUrl ให้ดึงพิกัดจริงจาก Google Maps ทันที
+    if (mapUrlToUse) {
+      const resolved = await resolveGoogleMapsCoords(mapUrlToUse);
       if (resolved) {
         finalLat = resolved.lat;
         finalLng = resolved.lng;
@@ -158,8 +213,8 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
         rentalStartDate: rentalStartDate ? new Date(rentalStartDate) : null,
         rentalEndDate: rentalEndDate ? new Date(rentalEndDate) : null,
         locationName,
-        address: address || '',
-        mapUrl: mapUrl ? String(mapUrl).trim() : null,
+        address: addressToUse,
+        mapUrl: mapUrlToUse,
         latitude: finalLat,
         longitude: finalLng,
         contactName: contactName || 'Admin Rental',
@@ -222,12 +277,23 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
       });
     }
 
+    let mapUrlToUse = mapUrl !== undefined ? (mapUrl ? String(mapUrl).trim() : null) : undefined;
+    let addressToUse = address !== undefined ? String(address).trim() : undefined;
+
+    // ตรวจสอบว่าแอดมินเผลอใส่ Google Maps URL ในช่องที่อยู่หรือไม่
+    if (addressToUse && (addressToUse.includes('maps.app.goo.gl') || addressToUse.includes('goo.gl/maps') || addressToUse.includes('google.com/maps'))) {
+      if (!mapUrlToUse) {
+        mapUrlToUse = addressToUse;
+      }
+      addressToUse = '';
+    }
+
     let finalLat = latitude !== undefined ? parseFloat(latitude) : undefined;
     let finalLng = longitude !== undefined ? parseFloat(longitude) : undefined;
 
     // ถ้ามีการส่ง mapUrl มา ให้ดึงพิกัดที่แท้จริงจาก Google Maps อัตโนมัติ
-    if (mapUrl) {
-      const resolved = await resolveGoogleMapsCoords(String(mapUrl));
+    if (mapUrlToUse) {
+      const resolved = await resolveGoogleMapsCoords(mapUrlToUse);
       if (resolved) {
         finalLat = resolved.lat;
         finalLng = resolved.lng;
@@ -246,8 +312,8 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
         rentalStartDate: rentalStartDate ? new Date(rentalStartDate) : null,
         rentalEndDate: rentalEndDate ? new Date(rentalEndDate) : null,
         locationName,
-        address,
-        mapUrl: mapUrl !== undefined ? (mapUrl ? String(mapUrl).trim() : null) : undefined,
+        address: addressToUse,
+        mapUrl: mapUrlToUse,
         latitude: finalLat,
         longitude: finalLng,
         contactName,

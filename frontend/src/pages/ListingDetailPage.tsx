@@ -215,7 +215,9 @@ export const ListingDetailPage: React.FC = () => {
               <MapPin size={16} className="text-pink-500 shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold text-slate-700 block">{listing.locationName}</span>
-                {listing.address && <span className="text-slate-500 text-[11px]">{listing.address}</span>}
+                {listing.address && !listing.address.startsWith('http') && (
+                  <span className="text-slate-500 text-[11px]">{listing.address}</span>
+                )}
               </div>
             </div>
 
@@ -316,7 +318,7 @@ export const ListingDetailPage: React.FC = () => {
                 <span>สถานที่ตั้ง</span>
               </div>
               <p className="text-xs font-medium text-slate-700">{listing.locationName}</p>
-              {listing.address && (
+              {listing.address && !listing.address.startsWith('http') && (
                 <p className="text-[11px] text-slate-500 leading-relaxed">{listing.address}</p>
               )}
               <div className="pt-2 text-[11px] text-slate-400">
