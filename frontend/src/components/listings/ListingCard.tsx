@@ -36,6 +36,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             (e.target as HTMLImageElement).src =
               'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
           }}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (img.naturalWidth === 180 && img.naturalHeight === 180) {
+              img.src =
+                'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
+            }
+          }}
         />
 
         {/* Badges Overlay */}

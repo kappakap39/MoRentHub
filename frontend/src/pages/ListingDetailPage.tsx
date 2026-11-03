@@ -31,6 +31,14 @@ export const ListingDetailPage: React.FC = () => {
     setFailedImages((prev) => (prev.includes(failedUrl) ? prev : [...prev, failedUrl]));
   };
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>, url: string) => {
+    const img = e.currentTarget;
+    // ดักจับรูป badge 503 "imgbb.com service unavailable" ซึ่งมีขนาด 180x180 พิกเซล
+    if (img.naturalWidth === 180 && img.naturalHeight === 180) {
+      handleImageError(url);
+    }
+  };
+
   useEffect(() => {
     const fetchDetail = async () => {
       if (!id) return;
@@ -110,13 +118,22 @@ export const ListingDetailPage: React.FC = () => {
     }
   };
 
-  // Directions (นำทาง): ฟิกเส้นทางจากตำแหน่งปัจจุบันของฉันไปยังจุดหมายปลายทางทันที
-  const googleMapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}&travelmode=driving`;
+  // ตรวจสอบว่าพิกัดเป็นค่าเริ่มต้นกรุงเทพฯ หรือไม่ (13.7563, 100.5018)
+  const isDefaultBangkok =
+    Math.abs(listing.latitude - 13.7563) < 0.001 &&
+    Math.abs(listing.longitude - 100.5018) < 0.001;
+
+  // Directions (นำทาง): ถ้าพิกัดยังเป็นค่ากทม. ให้ใช้ชื่อสถานที่ + ย่าน ค้นหา เพื่อไม่ให้หลุดไปกรุงเทพฯ เด็ดขาด
+  const destinationParam = isDefaultBangkok
+    ? encodeURIComponent(`${listing.locationName} ${listing.title}`)
+    : `${listing.latitude},${listing.longitude}`;
+
+  const googleMapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destinationParam}&travelmode=driving`;
   
   // View Location (ดูสถานที่): เปิดลิงก์หมุดสถานที่ตามที่แชร์ หรือเปิดค้นหาพิกัด
   const googleMapsSearchUrl = listing.mapUrl
     ? listing.mapUrl
-    : `https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`;
+    : `https://www.google.com/maps/search/?api=1&query=${destinationParam}`;
 
   return (
     <div className="space-y-8 pb-16">
@@ -149,6 +166,7 @@ export const ListingDetailPage: React.FC = () => {
               src={images[safeActiveIndex]}
               alt={listing.title}
               onError={() => handleImageError(images[safeActiveIndex])}
+              onLoad={(e) => handleImageLoad(e, images[safeActiveIndex])}
               className="w-full h-full object-cover transition-all duration-300"
             />
             <div className="absolute top-4 left-4 flex gap-2">
@@ -176,6 +194,7 @@ export const ListingDetailPage: React.FC = () => {
                     src={imgUrl}
                     alt={`thumb-${idx}`}
                     onError={() => handleImageError(imgUrl)}
+                    onLoad={(e) => handleImageLoad(e, imgUrl)}
                     className="w-full h-full object-cover"
                   />
                 </button>
